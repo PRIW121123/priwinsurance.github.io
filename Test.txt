@@ -1,0 +1,148 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Upload, Download, Plus } from "lucide-react";
+
+export default function DocumentPortal() {
+  const [files, setFiles] = useState([]);
+  const [user, setUser] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [policies, setPolicies] = useState([{ insurer: "", policyNumber: "", effectiveDate: "", expirationDate: "" }]);
+
+  const handleUpload = (event) => {
+    const uploadedFiles = Array.from(event.target.files);
+    setFiles([...files, ...uploadedFiles]);
+  };
+
+  const handleDownload = (file) => {
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleLogin = () => {
+    if (email && password) {
+      setUser({ email });
+    }
+  };
+
+  const addPolicyFields = () => {
+    setPolicies([...policies, { insurer: "", policyNumber: "", effectiveDate: "", expirationDate: "" }]);
+  };
+
+  return (
+    <div className="p-6 max-w-2xl mx-auto space-y-4">
+      {!user ? (
+        <Card>
+          <CardContent className="p-4 flex flex-col items-center space-y-4">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="p-2 border rounded w-full"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="p-2 border rounded w-full"
+            />
+            <Button onClick={handleLogin} variant="outline">
+              Log In
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <Card>
+            <CardContent className="p-4 flex flex-col space-y-4">
+              {policies.map((policy, index) => (
+                <div key={index} className="space-y-2 border p-4 rounded-lg">
+                  <input
+                    type="text"
+                    placeholder="Insurer"
+                    value={policy.insurer}
+                    onChange={(e) => {
+                      const updatedPolicies = [...policies];
+                      updatedPolicies[index].insurer = e.target.value;
+                      setPolicies(updatedPolicies);
+                    }}
+                    className="p-2 border rounded w-full"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Policy Number"
+                    value={policy.policyNumber}
+                    onChange={(e) => {
+                      const updatedPolicies = [...policies];
+                      updatedPolicies[index].policyNumber = e.target.value;
+                      setPolicies(updatedPolicies);
+                    }}
+                    className="p-2 border rounded w-full"
+                  />
+                  <input
+                    type="date"
+                    placeholder="Policy Effective Date"
+                    value={policy.effectiveDate}
+                    onChange={(e) => {
+                      const updatedPolicies = [...policies];
+                      updatedPolicies[index].effectiveDate = e.target.value;
+                      setPolicies(updatedPolicies);
+                    }}
+                    className="p-2 border rounded w-full"
+                  />
+                  <input
+                    type="date"
+                    placeholder="Policy Expiration Date"
+                    value={policy.expirationDate}
+                    onChange={(e) => {
+                      const updatedPolicies = [...policies];
+                      updatedPolicies[index].expirationDate = e.target.value;
+                      setPolicies(updatedPolicies);
+                    }}
+                    className="p-2 border rounded w-full"
+                  />
+                </div>
+              ))}
+              <Button onClick={addPolicyFields} variant="outline" className="flex items-center space-x-2">
+                <Plus size={16} /> <span>Add Another Policy</span>
+              </Button>
+              <input type="file" multiple onChange={handleUpload} className="hidden" id="fileInput" />
+              <label htmlFor="fileInput" className="cursor-pointer">
+                <Button variant="outline" className="flex items-center space-x-2">
+                  <Upload size={16} /> <span>Upload Document</span>
+                </Button>
+              </label>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <h2 className="text-xl font-semibold mb-3">Uploaded Documents</h2>
+              {files.length > 0 ? (
+                <ul className="space-y-2">
+                  {files.map((file, index) => (
+                    <li key={index} className="flex justify-between items-center border p-2 rounded-lg">
+                      <span>{file.name}</span>
+                      <Button variant="ghost" onClick={() => handleDownload(file)}>
+                        <Download size={16} />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">No documents uploaded yet.</p>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+}
