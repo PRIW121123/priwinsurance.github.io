@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+PRIW - Job Compliance
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -20,7 +20,7 @@
         <p id="auth-error" style="color:red;"></p>
     </div>
     
-    <div id="upload-container" class="hidden">
+<div id="upload-container" class="hidden">
         <h2>Upload Insurance Document</h2>
         <p id="company-name"></p>
         <input type="file" id="fileUpload"><br><br>
@@ -39,7 +39,7 @@
         <p id="upload-status"></p>
     </div>
 
-    <script>
+<script>
         const users = {};
         const uploadedFiles = [];
 
