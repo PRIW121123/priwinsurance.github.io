@@ -1,9 +1,9 @@
-PRIW - Job Compliance
+PRIW - Job Compliance Portal
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Sign Up</title>
+    <title>Web Portal</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
         .hidden { display: none; }
@@ -15,6 +15,10 @@ PRIW - Job Compliance
         <input type="email" id="email" placeholder="Email"><br><br>
         <input type="password" id="password" placeholder="Password"><br><br>
         <input type="text" id="company" placeholder="Company Name (only for sign up)"><br><br>
+        <select id="role">
+            <option value="subcontractor">Subcontractor</option>
+            <option value="admin">Administrator</option>
+        </select><br><br>
         <button onclick="authenticate()">Login</button>
         <button onclick="register()">Sign Up</button>
         <p id="auth-error" style="color:red;"></p>
@@ -38,21 +42,58 @@ PRIW - Job Compliance
         <button onclick="uploadFile()">Upload</button>
         <p id="upload-status"></p>
     </div>
-
+    
+<div id="admin-container" class="hidden">
+        <h2>Administrator Dashboard</h2>
+        <h3>Create New Job</h3>
+        <input type="text" id="job-name" placeholder="Job Name"><br><br>
+        <button onclick="createJob()">Create Job</button>
+        <p id="job-status"></p>
+        <h3>Existing Jobs</h3>
+        <ul id="job-list"></ul>
+    </div>
+    
+<div id="job-dashboard" class="hidden">
+        <h2 id="job-title"></h2>
+        <h3>Assigned Subcontractors</h3>
+        <ul id="subcontractor-list"></ul>
+        <h3>Upload Forms for Subcontractors</h3>
+        <input type="file" id="formUpload"><br><br>
+        <button onclick="uploadForm()">Upload Form</button>
+        <p id="form-status"></p>
+        <h3>Available Forms</h3>
+        <ul id="form-list"></ul>
+    </div>
+    
+<div id="subcontractor-dashboard" class="hidden">
+        <h2 id="subcontractor-title"></h2>
+        <h3>Insurance Certificates</h3>
+        <ul id="insurance-list"></ul>
+        <h3>Assigned Forms</h3>
+        <ul id="assigned-forms"></ul>
+        <h3>Upload Completed Forms</h3>
+        <input type="file" id="completedFormUpload"><br><br>
+        <button onclick="uploadCompletedForm()">Upload Completed Form</button>
+        <p id="completed-form-status"></p>
+    </div>
+    
 <script>
         const users = {};
+        const jobs = [];
         const uploadedFiles = [];
+        const forms = [];
 
         function register() {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
             const company = document.getElementById("company").value;
+            const role = document.getElementById("role").value;
 
             if (email && password && company) {
                 if (users[email]) {
                     document.getElementById("auth-error").textContent = "Email already registered!";
                 } else {
-                    users[email] = { password: password, company: company };
+                    users[email] = { password, company, role, jobs: [], documents: [], assignedForms: [] };
                     authenticate();
                 }
             } else {
@@ -66,58 +107,53 @@ PRIW - Job Compliance
             
             if (users[email] && users[email].password === password) {
                 document.getElementById("auth-container").classList.add("hidden");
-                document.getElementById("upload-container").classList.remove("hidden");
-                document.getElementById("company-name").textContent = "Company: " + users[email].company;
+                if (users[email].role === "admin") {
+                    document.getElementById("admin-container").classList.remove("hidden");
+                    renderJobList();
+                }
             } else {
                 document.getElementById("auth-error").textContent = "Invalid email or password!";
             }
         }
         
-        function addPolicyFields() {
-            const policyFields = document.getElementById("policy-fields");
-            const newEntry = document.createElement("div");
-            newEntry.classList.add("policy-entry");
-            newEntry.innerHTML = `
-                <input type="text" class="insurer" placeholder="Insurer Name"><br><br>
-                <input type="text" class="policy-number" placeholder="Policy Number"><br><br>
-                <label>Policy Effective Date:</label><br>
-                <input type="date" class="effective-date"><br><br>
-                <label>Policy Expiration Date:</label><br>
-                <input type="date" class="expiration-date"><br><br>
-            `;
-            policyFields.appendChild(newEntry);
+        function createJob() {
+            const jobName = document.getElementById("job-name").value;
+            if (jobName) {
+                jobs.push({ name: jobName, subcontractors: [] });
+                document.getElementById("job-status").textContent = "Job created successfully!";
+                renderJobList();
+            }
         }
         
-        function uploadFile() {
-            const fileInput = document.getElementById("fileUpload");
-            const policyEntries = document.querySelectorAll(".policy-entry");
-            
-            if (fileInput.files.length > 0 && policyEntries.length > 0) {
-                let policies = [];
-                policyEntries.forEach(entry => {
-                    const insurer = entry.querySelector(".insurer").value;
-                    const policyNumber = entry.querySelector(".policy-number").value;
-                    const effectiveDate = entry.querySelector(".effective-date").value;
-                    const expirationDate = entry.querySelector(".expiration-date").value;
-                    
-                    if (insurer && policyNumber && effectiveDate && expirationDate) {
-                        policies.push({ insurer, policyNumber, effectiveDate, expirationDate });
-                    }
-                });
-                
-                if (policies.length > 0) {
-                    uploadedFiles.push({
-                        file: fileInput.files[0].name,
-                        policies: policies
-                    });
-                    document.getElementById("upload-status").textContent = "File uploaded successfully with policies!";
-                } else {
-                    document.getElementById("upload-status").textContent = "Please fill in all policy fields.";
-                }
-            } else {
-                document.getElementById("upload-status").textContent = "Please select a file and add at least one policy.";
-            }
+        function renderJobList() {
+            const jobList = document.getElementById("job-list");
+            jobList.innerHTML = "";
+            jobs.forEach((job, index) => {
+                const li = document.createElement("li");
+                li.textContent = job.name;
+                li.onclick = () => openJobDashboard(index);
+                jobList.appendChild(li);
+            });
+        }
+        
+        function openJobDashboard(jobIndex) {
+            document.getElementById("admin-container").classList.add("hidden");
+            document.getElementById("job-dashboard").classList.remove("hidden");
+            document.getElementById("job-title").textContent = jobs[jobIndex].name;
+            renderSubcontractorList(jobIndex);
+        }
+
+        function renderSubcontractorList(jobIndex) {
+            const subList = document.getElementById("subcontractor-list");
+            subList.innerHTML = "";
+            jobs[jobIndex].subcontractors.forEach(sub => {
+                const li = document.createElement("li");
+                li.textContent = sub;
+                li.onclick = () => openSubcontractorDashboard(sub);
+                subList.appendChild(li);
+            });
         }
     </script>
 </body>
 </html>
+
