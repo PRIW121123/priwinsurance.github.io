@@ -32,10 +32,10 @@ PRIW - Job Compliance Portal
             <div class="policy-entry">
                 <input type="text" class="insurer" placeholder="Insurer Name"><br><br>
                 <input type="text" class="policy-number" placeholder="Policy Number"><br><br>
-                <label>Policy Effective Date:</label><br>
-                <input type="date" class="effective-date"><br><br>
-                <label>Policy Expiration Date:</label><br>
-                <input type="date" class="expiration-date"><br><br>
+                <label>Policy Effective Date:</label><br> 
+              <input type="date" class="effective-date"><br><br> 
+                <label>Policy Expiration Date:</label><br> 
+              <input type="date" class="expiration-date"><br><br>
             </div>
         </div>
         <button onclick="addPolicyFields()">Add Another Policy</button><br><br>
@@ -53,8 +53,12 @@ PRIW - Job Compliance Portal
         <ul id="job-list"></ul>
     </div>
     
-<div id="job-dashboard" class="hidden">
+ <div id="job-dashboard" class="hidden">
         <h2 id="job-title"></h2>
+        <h3>Invite Subcontractors</h3>
+        <select id="subcontractor-select"></select>
+        <button onclick="inviteSubcontractor()">Invite</button>
+        <p id="invite-status"></p>
         <h3>Assigned Subcontractors</h3>
         <ul id="subcontractor-list"></ul>
         <h3>Upload Forms for Subcontractors</h3>
@@ -65,23 +69,9 @@ PRIW - Job Compliance Portal
         <ul id="form-list"></ul>
     </div>
     
-<div id="subcontractor-dashboard" class="hidden">
-        <h2 id="subcontractor-title"></h2>
-        <h3>Insurance Certificates</h3>
-        <ul id="insurance-list"></ul>
-        <h3>Assigned Forms</h3>
-        <ul id="assigned-forms"></ul>
-        <h3>Upload Completed Forms</h3>
-        <input type="file" id="completedFormUpload"><br><br>
-        <button onclick="uploadCompletedForm()">Upload Completed Form</button>
-        <p id="completed-form-status"></p>
-    </div>
-    
-<script>
+  <script>
         const users = {};
         const jobs = [];
-        const uploadedFiles = [];
-        const forms = [];
 
         function register() {
             const email = document.getElementById("email").value;
@@ -140,20 +130,32 @@ PRIW - Job Compliance Portal
             document.getElementById("admin-container").classList.add("hidden");
             document.getElementById("job-dashboard").classList.remove("hidden");
             document.getElementById("job-title").textContent = jobs[jobIndex].name;
+            renderSubcontractorSelect();
             renderSubcontractorList(jobIndex);
         }
 
-        function renderSubcontractorList(jobIndex) {
-            const subList = document.getElementById("subcontractor-list");
-            subList.innerHTML = "";
-            jobs[jobIndex].subcontractors.forEach(sub => {
-                const li = document.createElement("li");
-                li.textContent = sub;
-                li.onclick = () => openSubcontractorDashboard(sub);
-                subList.appendChild(li);
+        function renderSubcontractorSelect() {
+            const subSelect = document.getElementById("subcontractor-select");
+            subSelect.innerHTML = "";
+            Object.keys(users).forEach(email => {
+                if (users[email].role === "subcontractor") {
+                    const option = document.createElement("option");
+                    option.value = email;
+                    option.textContent = users[email].company;
+                    subSelect.appendChild(option);
+                }
             });
+        }
+        
+        function inviteSubcontractor() {
+            const selectedSub = document.getElementById("subcontractor-select").value;
+            const jobIndex = jobs.findIndex(j => j.name === document.getElementById("job-title").textContent);
+            if (selectedSub && jobIndex !== -1) {
+                jobs[jobIndex].subcontractors.push(selectedSub);
+                document.getElementById("invite-status").textContent = "Subcontractor invited successfully!";
+                renderSubcontractorList(jobIndex);
+            }
         }
     </script>
 </body>
 </html>
-
