@@ -1,4 +1,4 @@
-PRIW - Job Compliance Portal
+PRIW Subcontractor Compliance
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -23,7 +23,7 @@ PRIW - Job Compliance Portal
         <button onclick="register()">Sign Up</button>
         <p id="auth-error" style="color:red;"></p>
     </div>
-    
+  
 <div id="upload-container" class="hidden">
         <h2>Upload Insurance Document</h2>
         <p id="company-name"></p>
@@ -53,7 +53,7 @@ PRIW - Job Compliance Portal
         <ul id="job-list"></ul>
     </div>
     
- <div id="job-dashboard" class="hidden">
+<div id="job-dashboard" class="hidden">
         <h2 id="job-title"></h2>
         <h3>Invite Subcontractors</h3>
         <select id="subcontractor-select"></select>
@@ -62,14 +62,17 @@ PRIW - Job Compliance Portal
         <h3>Assigned Subcontractors</h3>
         <ul id="subcontractor-list"></ul>
         <h3>Upload Forms for Subcontractors</h3>
-        <input type="file" id="formUpload"><br><br>
-        <button onclick="uploadForm()">Upload Form</button>
+        <div id="form-uploads">
+            <input type="file" class="formUpload"><br><br>
+        </div>
+        <button onclick="addFormUploadField()">Add Another Form</button><br><br>
+        <button onclick="uploadForm()">Upload Forms</button>
         <p id="form-status"></p>
         <h3>Available Forms</h3>
         <ul id="form-list"></ul>
     </div>
     
-  <script>
+<script>
         const users = {};
         const jobs = [];
 
@@ -115,47 +118,26 @@ PRIW - Job Compliance Portal
             }
         }
         
-        function renderJobList() {
-            const jobList = document.getElementById("job-list");
-            jobList.innerHTML = "";
-            jobs.forEach((job, index) => {
-                const li = document.createElement("li");
-                li.textContent = job.name;
-                li.onclick = () => openJobDashboard(index);
-                jobList.appendChild(li);
-            });
+        function addFormUploadField() {
+            const formUploads = document.getElementById("form-uploads");
+            const newInput = document.createElement("input");
+            newInput.type = "file";
+            newInput.className = "formUpload";
+            formUploads.appendChild(document.createElement("br"));
+            formUploads.appendChild(newInput);
+            formUploads.appendChild(document.createElement("br"));
         }
         
-        function openJobDashboard(jobIndex) {
-            document.getElementById("admin-container").classList.add("hidden");
-            document.getElementById("job-dashboard").classList.remove("hidden");
-            document.getElementById("job-title").textContent = jobs[jobIndex].name;
-            renderSubcontractorSelect();
-            renderSubcontractorList(jobIndex);
-        }
-
-        function renderSubcontractorSelect() {
-            const subSelect = document.getElementById("subcontractor-select");
-            subSelect.innerHTML = "";
-            Object.keys(users).forEach(email => {
-                if (users[email].role === "subcontractor") {
-                    const option = document.createElement("option");
-                    option.value = email;
-                    option.textContent = users[email].company;
-                    subSelect.appendChild(option);
+        function uploadForm() {
+            const formInputs = document.querySelectorAll(".formUpload");
+            formInputs.forEach(input => {
+                if (input.files.length > 0) {
+                    console.log("Uploaded form:", input.files[0].name);
                 }
             });
-        }
-        
-        function inviteSubcontractor() {
-            const selectedSub = document.getElementById("subcontractor-select").value;
-            const jobIndex = jobs.findIndex(j => j.name === document.getElementById("job-title").textContent);
-            if (selectedSub && jobIndex !== -1) {
-                jobs[jobIndex].subcontractors.push(selectedSub);
-                document.getElementById("invite-status").textContent = "Subcontractor invited successfully!";
-                renderSubcontractorList(jobIndex);
-            }
+            document.getElementById("form-status").textContent = "Forms uploaded successfully!";
         }
     </script>
 </body>
 </html>
+
